@@ -42,9 +42,16 @@ def main():
     FRAME_HEIGHT = 570
     FRAME_START_Y = 70
     speed_multiplier = [1.0]  # Use list so it can be modified in nested function
+    last_real_time = [time.time()]
+    accumulated_time = [0.0]
 
     def update_animation():
-        current_time = (time.time() - start_time) * speed_multiplier[0]
+        current_real_time = time.time()
+        delta_time = current_real_time - last_real_time[0]
+        last_real_time[0] = current_real_time
+        
+        accumulated_time[0] += delta_time * speed_multiplier[0]
+        current_time = accumulated_time[0]
         
         for i, lang in enumerate(languages):
             period = float(lang["time"].replace('s', ''))
