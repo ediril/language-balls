@@ -41,9 +41,10 @@ def main():
     FRAME_WIDTH = 720
     FRAME_HEIGHT = 570
     FRAME_START_Y = 70
+    speed_multiplier = [1.0]  # Use list so it can be modified in nested function
 
     def update_animation():
-        current_time = time.time() - start_time
+        current_time = (time.time() - start_time) * speed_multiplier[0]
         
         for i, lang in enumerate(languages):
             period = float(lang["time"].replace('s', ''))
@@ -66,6 +67,9 @@ def main():
                 x = right_x - travel_distance * ((cycle_time - period) / period)
             
             dpg.configure_item(f"ball_{i}", center=[x, lang["y"]])
+    
+    def speed_callback(sender, app_data):
+        speed_multiplier[0] = app_data
 
     with dpg.window(label="1 Billion nested loop iterations", width=WINDOW_WIDTH, height=700, tag="main"):
         
@@ -107,8 +111,29 @@ def main():
                         pos=[text_x + 20, lang["y"] - 2], 
                         color=[255, 255, 255])
             dpg.bind_item_font(dpg.last_item(), default_font)
+        
+        # Speed control slider below the frame
+        slider_y = FRAME_START_Y + FRAME_HEIGHT + 32
+        slider_width = 300
+        slider_start_x = FRAME_START_X + (FRAME_WIDTH - slider_width) // 2
+        
+        dpg.add_text("Slower", pos=[slider_start_x - 55, slider_y], color=[250, 250, 250])
+        dpg.bind_item_font(dpg.last_item(), default_font)
 
-    dpg.create_viewport(title="Language Performance Visualization", width=WINDOW_WIDTH, height=700)
+        dpg.add_text("Faster", pos=[slider_start_x + slider_width + 10, slider_y], color=[250, 250, 250])
+        dpg.bind_item_font(dpg.last_item(), default_font)
+
+        dpg.add_slider_float(
+            label="",
+            default_value=1.0,
+            min_value=0.1,
+            max_value=2.0,
+            width=slider_width,
+            pos=[slider_start_x, slider_y],
+            callback=speed_callback
+        )
+
+    dpg.create_viewport(title="Language Performance Visualization", width=WINDOW_WIDTH, height=720)
     dpg.setup_dearpygui()
     dpg.show_viewport()
     dpg.set_primary_window("main", True)
