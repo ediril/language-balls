@@ -4,8 +4,8 @@ setup(
     name="language-balls",
     version="0.1.0",
     description="Animated language balls moving at different periods",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Emrah Diril",
+    author_email="emrah@diril.org",
     packages=find_packages(),
     py_modules=["main"],
     install_requires=[

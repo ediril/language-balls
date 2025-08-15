@@ -3,6 +3,12 @@ def main():
     import time
 
     dpg.create_context()
+    
+    # Load a better font for crisp text rendering
+    with dpg.font_registry():
+        default_font = dpg.add_font("/System/Library/Fonts/Helvetica.ttc", 16)
+        bold_font = dpg.add_font("/System/Library/Fonts/Helvetica.ttc", 18)
+        title_font = dpg.add_font("/System/Library/Fonts/Helvetica.ttc", 24)
 
     languages = [
         {"name": "C/clang -O3", "time": "0.50s", "color": [70, 130, 180], "y": 100, "logo_y": 0},
@@ -22,7 +28,7 @@ def main():
     ]
 
     # Load the logos image
-    width, height, channels, data = dpg.load_image("/Users/ediril/Documents/^_PROJ/language-balls/logos.jpeg")
+    width, height, channels, data = dpg.load_image("logos.jpeg")
     
     with dpg.texture_registry():
         dpg.add_static_texture(width=width, height=height, default_value=data, tag="logos_texture")
@@ -31,6 +37,10 @@ def main():
     WINDOW_WIDTH = 900
     BOX_WIDTH = 280
     BOX_START_X = 100
+    FRAME_START_X = 90
+    FRAME_WIDTH = 720
+    FRAME_HEIGHT = 570
+    FRAME_START_Y = 70
 
     def update_animation():
         current_time = time.time() - start_time
@@ -39,41 +49,64 @@ def main():
             period = float(lang["time"].replace('s', ''))
             cycle_time = current_time % (period * 2)
             
-            box_right_edge = BOX_START_X + BOX_WIDTH
-            travel_distance = WINDOW_WIDTH - box_right_edge - 40
+            ball_radius = 15
+            box_right_edge = FRAME_START_X + 50 + BOX_WIDTH
+            frame_right_edge = FRAME_START_X + FRAME_WIDTH
+            
+            # Left position: ball's left edge 1 pixel from box right edge
+            left_x = box_right_edge + 1 + ball_radius
+            # Right position: ball's right edge 1 pixel from frame right edge  
+            right_x = frame_right_edge - 1 - ball_radius
+            
+            travel_distance = right_x - left_x
             
             if cycle_time <= period:
-                x = box_right_edge + 20 + travel_distance * (cycle_time / period)
+                x = left_x + travel_distance * (cycle_time / period)
             else:
-                x = WINDOW_WIDTH - 20 - travel_distance * ((cycle_time - period) / period)
+                x = right_x - travel_distance * ((cycle_time - period) / period)
             
             dpg.configure_item(f"ball_{i}", center=[x, lang["y"]])
 
     with dpg.window(label="1 Billion nested loop iterations", width=WINDOW_WIDTH, height=700, tag="main"):
-        dpg.add_text("1 Billion nested loop iterations", pos=[20, 30], color=[0, 0, 0])
         
         with dpg.drawlist(width=WINDOW_WIDTH, height=650, pos=[0, 60]):
             dpg.draw_rectangle([0, 0], [WINDOW_WIDTH, 650], color=[240, 240, 240], fill=[240, 240, 240])
             
+            # Draw the frame around the animation area
+            dpg.draw_rectangle([FRAME_START_X, FRAME_START_Y], 
+                             [FRAME_START_X + FRAME_WIDTH, FRAME_START_Y + FRAME_HEIGHT], 
+                             color=[80, 80, 80], thickness=3)
+            
             for i, lang in enumerate(languages):
-                logo_size = 40
+                logo_size = 30
                 uv_min = [0, lang["logo_y"] / height]
                 uv_max = [width / width, (lang["logo_y"] + 50) / height]
                 
                 dpg.draw_image("logos_texture", 
-                              [50, lang["y"] - logo_size//2], 
-                              [50 + logo_size, lang["y"] + logo_size//2],
+                              [FRAME_START_X + 10, lang["y"] - logo_size//2], 
+                              [FRAME_START_X + 10 + logo_size, lang["y"] + logo_size//2],
                               uv_min=uv_min, uv_max=uv_max)
                 
-                dpg.draw_rectangle([BOX_START_X, lang["y"] - 15], [BOX_START_X + BOX_WIDTH, lang["y"] + 15], 
+                dpg.draw_rectangle([FRAME_START_X + 50, lang["y"] - 15], [FRAME_START_X + 50 + BOX_WIDTH, lang["y"] + 15], 
                                  color=[100, 100, 100], fill=[60, 60, 60])
                 
-                text_x = BOX_START_X + (BOX_WIDTH / 2) - len(f"{lang['name']} ({lang['time']})") * 3.5
-                dpg.draw_text([text_x, lang["y"] - 5], f"{lang['name']} ({lang['time']})", 
-                             color=[255, 255, 255], size=12)
-                
-                dpg.draw_circle([BOX_START_X + BOX_WIDTH + 20, lang["y"]], 15, 
+                dpg.draw_circle([FRAME_START_X + 50 + BOX_WIDTH + 20, lang["y"]], 15, 
                               color=lang["color"], fill=lang["color"], tag=f"ball_{i}")
+        
+        # High-quality title text with proper positioning
+        title_text = "1 Billion nested loop iterations"
+        title_x = (WINDOW_WIDTH // 2) - (len(title_text) * 4)
+        dpg.add_text(title_text, pos=[title_x, 30], color=[50, 50, 50])
+        dpg.bind_item_font(dpg.last_item(), title_font)
+        
+        # High-quality text labels - positioned to account for drawlist offset
+        for i, lang in enumerate(languages):
+            text_x = FRAME_START_X + 50 + (BOX_WIDTH / 2) - len(f"{lang['name']} ({lang['time']})") * 4.5
+            # The key: lang["y"] is drawlist coordinates, so add 60 (drawlist offset) minus 8 for centering
+            dpg.add_text(f"{lang['name']} ({lang['time']})", 
+                        pos=[text_x + 20, lang["y"] - 2], 
+                        color=[255, 255, 255])
+            dpg.bind_item_font(dpg.last_item(), default_font)
 
     dpg.create_viewport(title="Language Performance Visualization", width=WINDOW_WIDTH, height=700)
     dpg.setup_dearpygui()
