@@ -1,6 +1,9 @@
 def main():
     import dearpygui.dearpygui as dpg
     import time
+    import os
+    import base64
+    import tempfile
 
     dpg.create_context()
     
@@ -28,7 +31,8 @@ def main():
     ]
 
     # Load the logos image
-    width, height, channels, data = dpg.load_image("logos.jpeg")
+    logo_path = os.path.join(os.path.dirname(__file__), "logos.jpeg")
+    width, height, channels, data = dpg.load_image(logo_path)
     
     with dpg.texture_registry():
         dpg.add_static_texture(width=width, height=height, default_value=data, tag="logos_texture")
