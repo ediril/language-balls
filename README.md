@@ -1,6 +1,6 @@
 # Language Balls
 
-Animated language balls moving at different periods based on performance benchmarks.
+Animated language balls moving at different periods based on performance benchmark, (Reference: [LinkedIn](https://www.linkedin.com/posts/wael-dagash-48692b120_which-programming-language-handles-1-billion-activity-7268148977462616064-KZzX/))
 
 ## Installation
 
